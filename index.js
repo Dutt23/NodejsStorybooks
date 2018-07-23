@@ -14,7 +14,6 @@
 // // Importing session
 // const session = require("express-session");
 
-
 // // Middleware for cookie parser
 // app.use(cookieParser());
 // // Middleware for express sessions
@@ -66,51 +65,83 @@
 //   console.log(`Server started on port ${port}`);
 // });
 
-
-const express = require('express');
-const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const passport = require('passport');
+const express = require("express");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const passport = require("passport");
 // Initialising express-handlebars
 const exphbs = require("express-handlebars");
+// Path module , core module. Used to redirect paths
+const path = require("path");
+// Importing body-parser
+const bodyParser = require("body-parser");
+// Importing method-ovveride
+const methodOverride = require("method-override");
 
-// Load User Model
-require('./model/Users');
-
+// Load Models
+require("./model/Users");
+require("./model/story");
 // Passport Config
-require('./config/passport')(passport);
+require("./config/passport")(passport);
 
 // Load Routes
-const auth = require('./routes/auth');
-const index = require('./routes/index');
+const auth = require("./routes/auth");
+const index = require("./routes/index");
+const stories = require("./routes/stories");
 
 // Load Keys
-const keys = require('./config/keys');
+const keys = require("./config/keys");
+// HandleBar helpers
+const { truncate, stripTags, dateFormat, select ,editIcon } = require("./helpers/hbs");
 
 // Map global promises
 mongoose.Promise = global.Promise;
+
 // Mongoose Connect
-mongoose.connect(keys.mongoURI, {
-  // useMongoClient:true
-  useNewUrlParser: true
-})
-  .then(() => console.log('MongoDB Connected'))
+mongoose
+  .connect(
+    keys.mongoURI,
+    {
+      // useMongoClient:true
+      useNewUrlParser: true
+    }
+  )
+  .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
 const app = express();
+// Middleware for body-parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.set(bodyParser.json());
+// Middleware for method-override , to make a put request
+app.use(methodOverride("_method"));
 // Handlebars middleware
-app.engine('handlebars',exphbs({
-  defaultLayout: "main"
-}));
-app.set("view engine","handlebars");
+app.engine(
+  "handlebars",
+  exphbs({
+    helpers: {
+      truncate: truncate,
+      stripTags: stripTags,
+      dateFormat: dateFormat,
+      select: select,
+      editIcon: editIcon
+    },
+    defaultLayout: "main"
+  })
+);
+
+//
+app.set("view engine", "handlebars");
 
 app.use(cookieParser());
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: false
-}));
+app.use(
+  session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: false
+  })
+);
 
 // Passport Middleware
 app.use(passport.initialize());
@@ -123,13 +154,13 @@ app.use((req, res, next) => {
 });
 
 // Use Routes
-app.use('/',index);
-app.use('/auth', auth);
-
-
-
+app.use("/", index);
+app.use("/auth", auth);
+app.use("/stories", stories);
+// Joining static directory
+app.use(express.static(path.join(__dirname, "public")));
 const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
-  console.log(`Server started on port ${port}`)
+  console.log(`Server started on port ${port}`);
 });

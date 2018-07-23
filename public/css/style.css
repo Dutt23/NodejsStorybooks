@@ -1,0 +1,30 @@
+/* Sticky footer */
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/* Wraps our {{{body}}} in main */
+main {
+  flex: 1 0 auto;
+}
+
+.nav-wrapper .fa-bars {
+  font-size: 20px;
+}
+
+.footer {
+  margin-top: 20px;
+}
+.story-text {
+  height: 120px;
+}
+/* Making status upperCase */
+.dash-status{
+text-transform: capitalize
+}
+/* Floating delete form */
+#delete-form{
+    display:inline
+}
